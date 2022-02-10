@@ -97,8 +97,8 @@ describe("defi bridge", function () {
     ).to.be.reverted;
   });
 
-  it("Should buy SetToken for ERC20 (DPI for DAI)", async () => {
-    console.log("=== Should buy SetToken for ERC20 (DPI for DAI) ===");
+  it("Should issue SetToken for ERC20 (DPI for DAI)", async () => {
+    console.log("=== Should issue SetToken for ERC20 (DPI for DAI) ===");
     const inputAsset = {
       assetId: 1,
       erc20Address: daiAddress,

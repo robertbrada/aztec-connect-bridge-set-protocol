@@ -34,11 +34,11 @@ contract IssuanceBridge is IDefiBridge {
     }
 
     /**
-     * @notice Function that allows to BUY or SELL SetToken in exchange for ETH or ERC20
-     * @param inputAssetA    - If BUY: ETH or ERC20        | If SELL: SetToken
-     * @param outputAssetA   - If BUY: setToken            | If SELL: ETH or ERC20
-     * @param inputValue     - If BUY: ETH or ERC20 amount | If SELL: SetToken amount
-     * @return outputValueA  - If BUY: SetToken amount     | If SELL: ETH or ERC20 amount
+     * @notice Function that allows to ISSUE or REDEEM SetToken in exchange for ETH or ERC20
+     * @param inputAssetA    - If ISSUE SET: ETH or ERC20        | If REDEEM SET: SetToken
+     * @param outputAssetA   - If ISSUE SET: setToken            | If REDEEM SET: ETH or ERC20
+     * @param inputValue     - If ISSUE SET: ETH or ERC20 amount | If REDEEM SET: SetToken amount
+     * @return outputValueA  - If ISSUE SET: SetToken amount     | If REDEEM SET: ETH or ERC20 amount
      * @return isAsync a flag to toggle if this bridge interaction will return assets at a later
             date after some third party contract has interacted with it via finalise()
      */
@@ -70,18 +70,18 @@ contract IssuanceBridge is IDefiBridge {
 
         isAsync = false;
 
-        // -------------------------------------------------------------------------------------
-        // Check if the user wants to BUY or SELL SetToken based on the input/output asset types
-        // -------------------------------------------------------------------------------------
+        // -----------------------------------------------------------------------------------------
+        // Check if the user wants to ISSUE or REDEEM SetToken based on the input/output asset types
+        // -----------------------------------------------------------------------------------------
 
-        // SELL SET: User wants to sell SetToken and receive ETH or ERC20
+        // REDEEM SET: User wants to redeem SetToken and receive ETH or ERC20
         // The inputAssetA is SetToken and outputAssetA is either ERC20 or ETH
         if (
             setController.isSet(address(inputAssetA.erc20Address)) &&
             (outputAssetA.assetType == AztecTypes.AztecAssetType.ETH ||
                 outputAssetA.assetType == AztecTypes.AztecAssetType.ERC20)
         ) {
-            console.log("BRIDGE: Sell SET and receive ETH or ERC20");
+            console.log("BRIDGE: Redeem SET and receive ETH or ERC20");
             // Check that spending of the given SetToken is approved
             require(
                 IERC20(inputAssetA.erc20Address).approve(
@@ -95,7 +95,7 @@ contract IssuanceBridge is IDefiBridge {
             // TODO this does not work. The transaction seems to revert somewhere in the issue()
             // function of BasicIssuanceModule.sol contract (on-chain contract developed by Set-Protocol)
             // if (outputAssetA.assetType == AztecTypes.AztecAssetType.ETH) {
-            //     console.log("BRIDGE: Sell SET and receive ETH ");
+            //     console.log("BRIDGE: Redeem SET and receive ETH ");
             //     outputValueA = exchangeIssuance.redeemExactSetForETH(
             //         ISetToken(address(inputAssetA.erc20Address)),
             //         inputValue, // _amountSetToken
@@ -105,7 +105,7 @@ contract IssuanceBridge is IDefiBridge {
 
             // user wants to receive ERC20
             if (outputAssetA.assetType == AztecTypes.AztecAssetType.ERC20) {
-                console.log("BRIDGE: Sell SET and receive ERC20 ");
+                console.log("BRIDGE: Redeem SET and receive ERC20 ");
                 outputValueA = exchangeIssuance.redeemExactSetForToken(
                     ISetToken(address(inputAssetA.erc20Address)), // _setToken,
                     IERC20(address(outputAssetA.erc20Address)), // _outputToken,
@@ -123,14 +123,14 @@ contract IssuanceBridge is IDefiBridge {
                 );
             }
         }
-        // BUY SET: User wants to buy SetToken for ERC20
+        // ISSUE SET: User wants to issue SetToken in for ERC20
         // The inputAssetA is ERC20 (but not SetToken) and outputAssetA is SetToken
         else if (
             inputAssetA.assetType == AztecTypes.AztecAssetType.ERC20 &&
             !setController.isSet(address(inputAssetA.erc20Address)) &&
             setController.isSet(address(outputAssetA.erc20Address))
         ) {
-            console.log("BRIDGE: Buy SET for ERC20");
+            console.log("BRIDGE: Issue SET for ERC20");
             // Check that spending of the ERC20 is approved
             require(
                 IERC20(inputAssetA.erc20Address).approve(
@@ -156,7 +156,7 @@ contract IssuanceBridge is IDefiBridge {
                 "IssuanceBridge: APPROVE_FAILED"
             );
         }
-        // BUY: User wants to buy SetToken for ETH
+        // ISSUE: User wants to issue SetToken for ETH
         // The inputAssetA is ETH and outputAssetA is SetToken
         // TODO this seems to work partially - when I run test, the ETH and SetToken balances
         // get updated, but I see the new state when running next it(...) test.
@@ -164,7 +164,7 @@ contract IssuanceBridge is IDefiBridge {
         //     inputAssetA.assetType == AztecTypes.AztecAssetType.ETH &&
         //     setController.isSet(address(outputAssetA.erc20Address))
         // ) {
-        //     console.log("BRIDGE: Buy SET for ETH");
+        //     console.log("BRIDGE: Issue SET for ETH");
         //     // issue SetTokens for a given amount of ETH (=inputValue)
         //     outputValueA = exchangeIssuance.issueSetForExactETH{
         //         value: inputValue
@@ -172,7 +172,8 @@ contract IssuanceBridge is IDefiBridge {
         //         ISetToken(address(outputAssetA.erc20Address)),
         //         0 // _minSetReceive
         //     );
-        } else {
+        // } 
+        else {
             console.log(
                 "INCOMPATIBLE_ASSET_PAIR - transaction will be reverted"
             );

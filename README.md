@@ -1,3 +1,32 @@
+# Aztec Connect Bridge for SetProtocol
+
+This bridge allows users to buy or sell SetTokens in exchange for ERC20 using ZK-rollup developed by Aztec. 
+This makes the transaction both private and cheaper.
+
+## Resources
+- [Aztec Network](https://aztec.network/)
+- [Aztec Connect Starter Kit](https://github.com/AztecProtocol/aztec-connect-bridges)
+- [Aztec's RollupProcessor.sol contract](https://etherscan.io/address/0x737901bea3eeb88459df9ef1be8ff3ae1b42a2ba)
+- [SetProtocol](https://www.tokensets.com/)
+- [SetProtocol's ExchangeIssuance.sol contract](https://etherscan.io/address/0xc8c85a3b4d03fb3451e7248ff94f780c92f884fd)
+
+## Setup
+
+1. `git clone https://github.com/robertbrada/aztec-connect-bridge-set-protocol.git`
+
+2. `cd ./aztec-connect-bridge-set-protocol`
+
+3. `yarn`
+
+## Commands:
+
+Compile contracts:
+- `yarn compile`
+
+Test bridge:
+- `yarn test bridges/SetProtocol`
+
+
 # Contributing a bridge
 
 Developing a bridge is permisionless, simply follow the steps below to get started.

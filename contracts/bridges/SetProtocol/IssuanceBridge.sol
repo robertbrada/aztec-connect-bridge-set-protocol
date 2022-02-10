@@ -93,15 +93,15 @@ contract IssuanceBridge is IDefiBridge {
 
             // user wants to receive ETH
             // TODO this does not work. The transaction seems to revert somewhere in the issue()
-            // function of BasicIssuanceModule.sol contract (on-chain contract developed by Set-Protocol) 
-            if (outputAssetA.assetType == AztecTypes.AztecAssetType.ETH) {
-                console.log("BRIDGE: Sell SET and receive ETH ");
-                outputValueA = exchangeIssuance.redeemExactSetForETH(
-                    ISetToken(address(inputAssetA.erc20Address)),
-                    inputValue, // _amountSetToken
-                    0 // __minEthOut
-                );
-            }
+            // function of BasicIssuanceModule.sol contract (on-chain contract developed by Set-Protocol)
+            // if (outputAssetA.assetType == AztecTypes.AztecAssetType.ETH) {
+            //     console.log("BRIDGE: Sell SET and receive ETH ");
+            //     outputValueA = exchangeIssuance.redeemExactSetForETH(
+            //         ISetToken(address(inputAssetA.erc20Address)),
+            //         inputValue, // _amountSetToken
+            //         0 // __minEthOut
+            //     );
+            // }
 
             // user wants to receive ERC20
             if (outputAssetA.assetType == AztecTypes.AztecAssetType.ERC20) {
@@ -159,19 +159,19 @@ contract IssuanceBridge is IDefiBridge {
         // BUY: User wants to buy SetToken for ETH
         // The inputAssetA is ETH and outputAssetA is SetToken
         // TODO this seems to work partially - when I run test, the ETH and SetToken balances
-        // get updated, but I see the new state when running next it(...) test. 
-        else if (
-            inputAssetA.assetType == AztecTypes.AztecAssetType.ETH &&
-            setController.isSet(address(outputAssetA.erc20Address))
-        ) {
-            console.log("BRIDGE: Buy SET for ETH");
-            // issue SetTokens for a given amount of ETH (=inputValue)
-            outputValueA = exchangeIssuance.issueSetForExactETH{
-                value: inputValue
-            }(
-                ISetToken(address(outputAssetA.erc20Address)),
-                0 // _minSetReceive
-            );
+        // get updated, but I see the new state when running next it(...) test.
+        // else if (
+        //     inputAssetA.assetType == AztecTypes.AztecAssetType.ETH &&
+        //     setController.isSet(address(outputAssetA.erc20Address))
+        // ) {
+        //     console.log("BRIDGE: Buy SET for ETH");
+        //     // issue SetTokens for a given amount of ETH (=inputValue)
+        //     outputValueA = exchangeIssuance.issueSetForExactETH{
+        //         value: inputValue
+        //     }(
+        //         ISetToken(address(outputAssetA.erc20Address)),
+        //         0 // _minSetReceive
+        //     );
         } else {
             console.log(
                 "INCOMPATIBLE_ASSET_PAIR - transaction will be reverted"

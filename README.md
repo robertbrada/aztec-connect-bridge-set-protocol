@@ -3,6 +3,10 @@
 This bridge allows users to buy or sell SetTokens in exchange for ERC20 using ZK-rollup developed by Aztec. 
 This makes the transaction both private and cheaper.
 
+There are 2 possible flows right now (more to be added):
+1. Issue SetToken for ERC20 
+2. Redeem SetToken for ERC20 
+
 ## Resources
 - [Aztec Network](https://aztec.network/)
 - [Aztec Connect Starter Kit](https://github.com/AztecProtocol/aztec-connect-bridges)

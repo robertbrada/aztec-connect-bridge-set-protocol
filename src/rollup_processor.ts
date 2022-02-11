@@ -1,5 +1,6 @@
 import { Provider, Web3Provider } from "@ethersproject/providers";
-import { Contract, ContractFactory, ethers, Signer } from "ethers";
+import { Contract, ContractFactory, ethers, Signer, BigNumber } from "ethers";
+import { ethers as ethersHH } from "hardhat";
 
 import abi from "./artifacts/contracts/MockRollupProcessor.sol/MockRollupProcessor.json";
 
@@ -160,6 +161,27 @@ export class RollupProcessor {
     const tokenContract = new Contract(address, ERC20.abi, signer);
     const currentBalance = await tokenContract.balanceOf(this.address);
     return currentBalance.toBigInt();
+  }
+
+  async receiveEthFromBridge(
+    signer: Signer,
+    interactionNonce: bigint,
+    value: BigNumber
+  ) {
+    const contract = new Contract(
+      this.contract.address,
+      this.contract.interface,
+      signer
+    );
+
+    const tx = await contract.receiveEthFromBridge(interactionNonce, {
+      value: value,
+    });
+
+    console.log(
+      "Rollup received ETH. Current ETH balance: ",
+      BigInt(await ethersHH.provider.getBalance(this.address))
+    );
   }
 
   async preFundContractWithToken(

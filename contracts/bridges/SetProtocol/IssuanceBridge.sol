@@ -75,7 +75,8 @@ contract IssuanceBridge is IDefiBridge {
         // -----------------------------------------------------------------------------------------
 
         // REDEEM SET: User wants to redeem SetToken and receive ETH or ERC20
-        // The inputAssetA is SetToken and outputAssetA is either ERC20 or ETH
+        // inputAssetA: SetToken
+        // outputAssetA ERC20 or ETH
         if (
             setController.isSet(address(inputAssetA.erc20Address)) &&
             (outputAssetA.assetType == AztecTypes.AztecAssetType.ETH ||
@@ -124,7 +125,8 @@ contract IssuanceBridge is IDefiBridge {
             }
         }
         // ISSUE SET: User wants to issue SetToken in for ERC20
-        // The inputAssetA is ERC20 (but not SetToken) and outputAssetA is SetToken
+        // inputAssetA: ERC20 (but not SetToken)
+        // outputAssetA: SetToken
         else if (
             inputAssetA.assetType == AztecTypes.AztecAssetType.ERC20 &&
             !setController.isSet(address(inputAssetA.erc20Address)) &&
@@ -157,23 +159,30 @@ contract IssuanceBridge is IDefiBridge {
             );
         }
         // ISSUE: User wants to issue SetToken for ETH
-        // The inputAssetA is ETH and outputAssetA is SetToken
-        // TODO this seems to work partially - when I run test, the ETH and SetToken balances
-        // get updated, but I see the new state when running next it(...) test.
-        // else if (
-        //     inputAssetA.assetType == AztecTypes.AztecAssetType.ETH &&
-        //     setController.isSet(address(outputAssetA.erc20Address))
-        // ) {
-        //     console.log("BRIDGE: Issue SET for ETH");
-        //     // issue SetTokens for a given amount of ETH (=inputValue)
-        //     outputValueA = exchangeIssuance.issueSetForExactETH{
-        //         value: inputValue
-        //     }(
-        //         ISetToken(address(outputAssetA.erc20Address)),
-        //         0 // _minSetReceive
-        //     );
-        // } 
-        else {
+        // inputAssetA: ETH
+        // outputAssetA: SetToken
+        else if (
+            inputAssetA.assetType == AztecTypes.AztecAssetType.ETH &&
+            setController.isSet(address(outputAssetA.erc20Address))
+        ) {
+            console.log("BRIDGE: Issue SET for ETH");
+            // issue SetTokens for a given amount of ETH (=inputValue)
+            outputValueA = exchangeIssuance.issueSetForExactETH{
+                value: inputValue
+            }(
+                ISetToken(address(outputAssetA.erc20Address)),
+                0 // _minSetReceive
+            );
+
+            // approve the transfer of funds back to the rollup contract
+            require(
+                IERC20(outputAssetA.erc20Address).approve(
+                    rollupProcessor,
+                    outputValueA
+                ),
+                "IssuanceBridge: APPROVE_FAILED"
+            );
+        } else {
             console.log(
                 "INCOMPATIBLE_ASSET_PAIR - transaction will be reverted"
             );

@@ -128,10 +128,12 @@ describe("defi bridge", function () {
       },
     };
 
+    console.log("before", before);
+
     // amount of DAI deposited in the previous test (that tx. should revert and no DAI should be spent)
     const daiToConvert = 1n * 10n ** 21n;
 
-    await rollupContract.convert(
+    const { outputValueA } = await rollupContract.convert(
       signer,
       issuanceBridgeContract.address,
       inputAsset,
@@ -158,11 +160,13 @@ describe("defi bridge", function () {
       },
     };
 
+    console.log("after", after);
+
     expect(before.rollupContract.DAI).toBe(daiToConvert);
     expect(before.rollupContract.DPI).toBe(0n);
     expect(after.rollupContract.DAI).toBe(0n);
-    // TODO get more precise expected amount of DPI received
     expect(after.rollupContract.DPI).toBeGreaterThan(0);
+    expect(after.rollupContract.DPI).toBe(outputValueA);
   });
 
   it("Should redeem SetToken for ERC20 (DPI for DAI)", async () => {
@@ -185,6 +189,7 @@ describe("defi bridge", function () {
       rollupContract: {
         DAI: BigInt(await DAIContract.balanceOf(rollupContract.address)),
         DPI: BigInt(await DPIContract.balanceOf(rollupContract.address)),
+        ETH: BigInt(await ethers.provider.getBalance(rollupContract.address)),
       },
       bridgeContract: {
         DAI: BigInt(
@@ -193,10 +198,15 @@ describe("defi bridge", function () {
         DPI: BigInt(
           await DPIContract.balanceOf(issuanceBridgeContract.address)
         ),
+        ETH: BigInt(
+          await ethers.provider.getBalance(issuanceBridgeContract.address)
+        ),
       },
     };
 
-    await rollupContract.convert(
+    console.log("before", before);
+
+   const { outputValueA } = await rollupContract.convert(
       signer,
       issuanceBridgeContract.address,
       inputAsset,
@@ -208,11 +218,11 @@ describe("defi bridge", function () {
       0n
     );
 
-
     const after = {
       rollupContract: {
         DAI: BigInt(await DAIContract.balanceOf(rollupContract.address)),
         DPI: BigInt(await DPIContract.balanceOf(rollupContract.address)),
+        ETH: BigInt(await ethers.provider.getBalance(rollupContract.address)),
       },
       bridgeContract: {
         DAI: BigInt(
@@ -221,13 +231,94 @@ describe("defi bridge", function () {
         DPI: BigInt(
           await DPIContract.balanceOf(issuanceBridgeContract.address)
         ),
+        ETH: BigInt(
+          await ethers.provider.getBalance(issuanceBridgeContract.address)
+        ),
       },
     };
 
-    expect(before.rollupContract.DAI).toBe(0n); // we swapped all DAI to DPI in the previous test 
+    console.log("after", after);
+
+    expect(before.rollupContract.DAI).toBe(0n); // we swapped all DAI to DPI in the previous test
     expect(before.rollupContract.DPI).toBeGreaterThan(0n);
     expect(after.rollupContract.DAI).toBeGreaterThan(0n);
-    expect(before.rollupContract.DAI).toBe(0n); // we swapped all DAI to DPI in the previous test 
-    // TODO compute more precise expected amount of DPI received
+    expect(after.rollupContract.DAI).toBe(outputValueA);
+// TODO compute more precise expected amount of DPI received
+  });
+
+  it("Should issue SetToken for ETH (DPI for ETH)", async () => {
+    console.log("=== Should buy SetToken for ETH (DPI for ETH) ===");
+
+    const inputAsset = {
+      assetId: 1,
+      erc20Address: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      assetType: AztecAssetType.ETH,
+    };
+    const outputAsset = {
+      assetId: 2,
+      erc20Address: dpiAddress,
+      assetType: AztecAssetType.ERC20,
+    };
+
+    const DPIContract = await ethers.getContractAt("ERC20", dpiAddress, signer);
+
+    // pre-fund contract with ETH
+    const quantityOfEthToDeposit = ethers.utils.parseEther("1");
+    rollupContract.receiveEthFromBridge(signer, 0n, quantityOfEthToDeposit);
+
+    const quantityOfEthToConvert = ethers.utils.parseEther("0.2");
+
+    // Get ETH and DPI balances before convert()
+    const before = {
+      rollupContract: {
+        DPI: BigInt(await DPIContract.balanceOf(rollupContract.address)),
+        ETH: BigInt(await ethers.provider.getBalance(rollupContract.address)),
+      },
+      bridgeContract: {
+        DPI: BigInt(
+          await DPIContract.balanceOf(issuanceBridgeContract.address)
+        ),
+        ETH: BigInt(
+          await ethers.provider.getBalance(issuanceBridgeContract.address)
+        ),
+      },
+    };
+
+    console.log("before", before);
+
+    const { outputValueA } = await rollupContract.convert(
+      signer,
+      issuanceBridgeContract.address,
+      inputAsset,
+      {},
+      outputAsset,
+      {},
+      BigInt(quantityOfEthToConvert),
+      0n,
+      0n
+    );
+
+    const after = {
+      rollupContract: {
+        DPI: BigInt(await DPIContract.balanceOf(rollupContract.address)),
+        ETH: BigInt(await ethers.provider.getBalance(rollupContract.address)),
+      },
+      bridgeContract: {
+        DPI: BigInt(
+          await DPIContract.balanceOf(issuanceBridgeContract.address)
+        ),
+        ETH: BigInt(
+          await ethers.provider.getBalance(issuanceBridgeContract.address)
+        ),
+      },
+    };
+
+    console.log("after", after);
+
+    expect(before.rollupContract.ETH).toBe(1000000000000000000n); // 1 ETH
+    expect(before.rollupContract.DPI).toBe(0n);
+    expect(after.rollupContract.ETH).toBe(800000000000000000n); // 0.8 ETH (quantityOfEthToDeposit - quantityOfEthToConvert)
+    expect(after.rollupContract.DPI).toBeGreaterThan(0n);
+    expect(after.rollupContract.DPI).toBe(outputValueA);
   });
 });
